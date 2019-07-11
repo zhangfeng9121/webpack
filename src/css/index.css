@@ -1,0 +1,14 @@
+
+body {
+	height: 100px;
+	background: url(../images/cis.png) no-repeat;
+}
+
+.imga {
+	height: 100px;
+	background: url(../images/cis.png) no-repeat;
+}
+
+li{
+  list-style: none;
+}
