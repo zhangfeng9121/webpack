@@ -48,15 +48,15 @@ $(function() {
 import 'bootstrap/dist/css/bootstrap.css'
 
 // class 关键字，是ES6中提供的新语法，是用来 实现 ES6 中面向对象编程的方式
-class Person {
-  // 使用 static 关键字，可以定义静态属性
-  // 所谓的静态属性，就是 可以直接通过 类名， 直接访问的属性
-  // 实例属性： 只能通过类的实例，来访问的属性，叫做实例属性
-  static info = { name: 'zs', age: 20 }
-}
+// class Person {
+//   // 使用 static 关键字，可以定义静态属性
+//   // 所谓的静态属性，就是 可以直接通过 类名， 直接访问的属性
+//   // 实例属性： 只能通过类的实例，来访问的属性，叫做实例属性
+//   static info = { name: 'zs', age: 20 }
+// }
 
-// 访问 Person 类身上的  info 静态属性
-console.log(Person.info)
+// // 访问 Person 类身上的  info 静态属性
+// console.log(Person.info)
 // 在 webpack 中，默认只能处理 一部分 ES6 的新语法，一些更高级的ES6语法或者 ES7 语法，webpack 是处理不了的；这时候，就需要 借助于第三方的 loader，来帮助webpack 处理这些高级的语法，当第三方loader 把 高级语法转为 低级的语法之后，会把结果交给 webpack 去打包到 bundle.js 中
 // 通过 Babel ，可以帮我们将 高级的语法转换为 低级的语法
 // 1. 在 webpack 中，可以运行如下两套 命令，安装两套包，去安装 Babel 相关的loader功能：
@@ -92,3 +92,54 @@ console.log(Person.info)
 // // console.log(Animal.info)
 // // 这是实例属性：
 // console.log(a1.name)
+// 
+
+// 导入vue
+import Vue from 'vue'
+// 在webpack 中尝试使用 Vue：
+// 注意： 在 webpack 中， 使用 import Vue from 'vue' 导入的 Vue 构造函数，功能不完整，只提供了 runtime-only 的方式，并没有提供 像网页中那样的使用方式；
+// import Vue from '../node_modules/vue/dist/vue.js'
+// 回顾 包的查找规则：
+// 1. 找 项目根目录中有没有 node_modules 的文件夹
+// 2. 在 node_modules 中 根据包名，找对应的 vue 文件夹
+// 3. 在 vue 文件夹中，找 一个叫做 package.json 的包配置文件
+// 4. 在 package.json 文件中，查找 一个 main 属性【main属性指定了这个包在被加载时候，的入口文件】
+
+// var login = {
+//   template: '<h1>这是login组件，是使用网页中形式创建出来的组件</h1>'
+// }
+// 使用mint-ui组件库
+import { Button } from 'mint-ui'
+Vue.component(Button.name, Button)
+import 'mint-ui/lib/style.css'
+
+// 导入mui样式
+import './lib/mui/css/mui.min.css'
+
+
+// 1. 导入 vue-router 包
+import VueRouter from 'vue-router'
+// 2. 手动安装 VueRouter 
+Vue.use(VueRouter)
+
+// 导入组件
+import login from './App.vue'
+
+// 导入router模块
+import router from './router.js'
+
+
+
+
+var vm = new Vue({
+    el: '#app',
+    data: {},
+    methods: {},
+    render: c => c(login),
+    router:router
+});
+
+
+
+
+

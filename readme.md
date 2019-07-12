@@ -181,19 +181,196 @@ module: { // 用来配置第三方loader模块的
 ```
 
 ## 使用babel处理高级JS语法
- - 运行`cnpm i babel-core babel-loader babel-plugin-transform-runtime --save-dev`安装babel的相关loader包
+ - 运行`cnpm i babel-loader @babel/core  @babel/plugin-transform-runtime --save-dev`安装babel的相关loader包
  - 上一条命令提示缺少`@babel/core@^7.0.0` 执行`cnpm i @babel/core@^7.0.0 -D`
- - 运行`cnpm i babel-preset-es2015 babel-preset-stage-0 --save-dev`安装babel转换的语法
+ - 运行`cnpm i @babel/preset-env @babel/preset-stage-0 --save-dev`安装babel转换的语法
  - 在`webpack.config.js`中添加相关loader模块，其中需要注意的是，一定要把`node_modules`文件夹添加到排除项：
 ```js
 { test: /\.js$/, use: 'babel-loader', exclude: /node_modules/ }
 // 配置 Babel 来转换高级的ES语法
 ```
  - 在项目根目录中添加`.babelrc`文件，并修改这个配置文件如下：
-```jscnpm i babel-preset-es2015 babel-preset-stage-0 --save-dev
+```js
 {
-    "presets":["es2015", "stage-0"],
-    "plugins":["transform-runtime"]
+  "presets": ["@babel/preset-env"],
+  "plugins": ["@babel/plugin-transform-runtime"]
 }
+
+'@babel/preset-stage-0 --save-dev':有问题
 ```
  - **注意：语法插件`babel-preset-es2015`可以更新为`babel-preset-env`，它包含了所有的ES相关的语法；**
+
+## 在webpack中配置.vue组件页面的解析
+ - 运行`cnpm i vue -S`将vue安装为运行依赖；
+ - 运行`cnpm i vue-loader vue-template-compiler -D`将解析转换vue的包安装为开发依赖；
+ - 在`webpack.config.js`中，添加如下`module`规则：
+ ```js
+     { test: /\.vue$/, use: 'vue-loader' } // 处理 .vue 文件的 loader
+ ```
+
+### 项目导入vue及导入.vue说明
+ - 安装vue的包：  cnpm i vue -S
+ - 由于 在 webpack 中，推荐使用 .vue 这个组件模板文件定义组件，所以，需要安装 能解析这种文件的 loader  `cnpm i vue-loader vue-template-compiler -D`
+ - webpack.config.js中配置
+     + var VueLoaderPlugin = require('vue-loader/lib/plugin');
+     + plugins中加入`new VueLoaderPlugin(),`
+     + rules中加入`{ test:/\.vue$/, use: 'vue-loader' }`
+ - 在 main.js 中，导入 vue 模块  import Vue from 'vue'
+ - 定义一个 .vue 结尾的组件，其中，组件有三部分组成： template script style
+ - 使用 import login from './login.vue' 导入这个组件
+ - 创建 vm 的实例 var vm = new Vue({ el: '#app', render: c => c(login) })
+ - 在页面中创建一个 id 为 app 的 div 元素，作为我们 vm 实例要控制的区域；
+ 
+ ```js
+    import Vue from 'vue'
+    // import Vue from '../node_modules/vue/dist/vue.js'
+    // 回顾 包的查找规则：
+    // 1. 找 项目根目录中有没有 node_modules 的文件夹
+    // 2. 在 node_modules 中 根据包名，找对应的 vue 文件夹
+    // 3. 在 vue 文件夹中，找 一个叫做 package.json 的包配置文件
+    // 4. 在 package.json 文件中，查找 一个 main 属性【main属性指定了这个包在被加载时候，的入口文件】
+
+    // var login = {
+    //   template: '<h1>这是login组件，是使用网页中形式创建出来的组件</h1>'
+    // }
+
+
+    // 1. 导入 login 组件
+    import login from './login.vue'
+    // 默认，webpack 无法打包 .vue 文件，需要安装 相关的loader： 
+    //  cnpm i vue-loader vue-template-compiler -D
+    //  在配置文件中，新增loader哦配置项 { test:/\.vue$/, use: 'vue-loader' }
+ ```
+
+ > import Vue from 'vue'
+ > 根据搜索规则默认寻找node_modules\vue\package.json中的main节点
+ > vue组件中main节点：`"main": "dist/vue.runtime.common.js",`
+ > 
+ > 如果想要使用vue.js|vue.min.js配置如下：
+ >  1：入口函数中使用相对路径导入： import Vue from '../node_modules/vue/dist/vue.js'
+ >  2：在webpack.config.js中配置
+ >  resolve: {
+        alias: { // 修改 Vue 被导入时候的包的路径
+          // "vue$": "vue/dist/vue.js"
+        }
+      }
+
+## 集成vue-router路由模块
+- cnpm i vue-router -S
+- main.js入口文件引入配置
+```js
+    // 1. 导入 vue-router 包
+    import VueRouter from 'vue-router'
+    // 2. 手动安装 VueRouter 
+    Vue.use(VueRouter)
+
+    // 导入根组件
+    import login from './App.vue'
+    // 导入组件对象
+    import account from './main/account.vue'
+    import goodlist from './main/goodList.vue'
+
+    // 导入子组件
+    import zLogin from './submain/login.vue'
+    import register from './submain/register.vue'
+    // 3. 创建路由对象
+    var router = new VueRouter({
+        routes: [
+            {
+                path: '/account',
+                component:account,
+                children: [
+                    {path:'login', component:zLogin},
+                    {path:'register', component:register},
+                ]
+            },
+            {path: '/goodlist', component:goodlist}
+        ]
+    });
+
+    // 4. 创建vue实例对象
+    var vm = new Vue({
+        el: '#app',
+        data: {},
+        methods: {},
+        // 使用render挂载组件，会覆盖掉#app
+        render: c => c(login),
+        // 使用router组件必要要挂在vue实例上 也可以直接写成router es6新语法
+        router:router
+    });
+```
+- 抽离router模块
+    + 在main.js同级目录下新建router.js
+```js
+    // 抽离路由模块
+
+    // 导入vue-router模块
+    import VueRouter from 'vue-router'
+
+    // 导入组件对象
+    import account from './main/account.vue'
+    import goodlist from './main/goodList.vue'
+
+    // 导入子组件
+    import zLogin from './submain/login.vue'
+    import register from './submain/register.vue'
+    // 3. 创建路由对象
+    var router = new VueRouter({
+        routes: [
+            {
+                path: '/account',
+                component:account,
+                children: [
+                    {path:'login', component:zLogin},
+                    {path:'register', component:register},
+                ]
+            },
+            {path: '/goodlist', component:goodlist}
+        ]
+    });
+
+    export default router
+```
+    + main.js添加 `import router from './router.js'`
+    
+```js
+    // 导入vue
+    import Vue from 'vue'
+    // 1. 导入 vue-router 包
+    import VueRouter from 'vue-router'
+    // 2. 手动安装 VueRouter 
+    Vue.use(VueRouter)
+
+    // 导入组件
+    import login from './App.vue'
+    // 导入router模块
+    import router from './router.js'
+
+    // 3. 创建vue实例
+    var vm = new Vue({
+        el: '#app',
+        data: {},
+        methods: {},
+        render: c => c(login),
+        router:router
+    });
+```
+
+## 使用mint-ui
+- npm i mint-ui --save
+- 组件导入
+```js
+// 导入样式
+import 'mint-ui/lib/style.css'
+// 按需导入 Mint-UI组件
+import { Button } from 'mint-ui'
+// 使用 Vue.component 注册 按钮组件
+Vue.component(Button.name, Button)
+```
+
+## 使用mui
+- 手动导入资源包
+- 组件导入
+```js
+import './lib/mui/css/mui.min.css'
+```
